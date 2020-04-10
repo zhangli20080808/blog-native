@@ -6,12 +6,15 @@ const handleUserRoute = (req, res) => {
   // 新建博客
   if (method === 'POST' && req.path === '/api/user/login') {
     const { username, password } = req.body;
+    console.log(req.body);
     const result = loginCheck(username, password);
-    if (result) {
-      return new SuccessModel();
-    } else {
-      return new ErrorModel('登录失败');
-    }
+    return result.then(loginData=>{
+      if (loginData.username) {
+        return new SuccessModel();
+      } else {
+        return new ErrorModel('登录失败');
+      }
+    })
   }
 };
-module.exports = handleUserRoute;
+module.exports = handleUserRoute; 

@@ -31,7 +31,6 @@ const getPostData = (req) => {
 
 const serverHandle = (req, res) => {
   res.setHeader('Content-type', 'application/json');
-
   // 获取path
   const url = req.url;
   req.path = url.split('?')[0];
@@ -49,11 +48,13 @@ const serverHandle = (req, res) => {
       });
       return;
     }
-    // const userData = handleUserRoute(req, res);
-    // if (userData) {
-    //   res.end(JSON.stringify(userData));
-    //   return;
-    // }
+    const userResult = handleUserRoute(req, res);
+
+    if (userResult) {
+      return userResult.then((userData) => {
+        res.end(JSON.stringify(userData));
+      });
+    }
     // 未命中路由 返回404
     res.writeHead(404, { 'Content-type': 'text/plain' });
     res.write('404 not found');

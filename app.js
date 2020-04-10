@@ -4,6 +4,16 @@ const handleUserRoute = require('./src/route/user');
 const queryString = require('querystring');
 
 
+function getCookieExpires() {
+  const d = new Date();
+  d.setTime(d.getTime() + 24 * 60 * 60 * 1000);
+  // cookies 时间格式  Sat, 11 Apr 2020 07:23:13 GMT
+  return d.toGMTString();
+}
+
+// session 数据
+const SESSION_DATA = {};
+
 // 用于处理 post data
 const getPostData = (req) => {
   const promise = new Promise((resolve, reject) => {
@@ -48,10 +58,23 @@ const serverHandle = (req, res) => {
     const arr = item.split('=');
     const key = arr[0].trim();
     const val = arr[1].trim();
-    console.log(key, val);
     req.cookie[key] = val;
   });
 
+  // 解析 session
+  let userId = req.cookie.userid;
+  // 是否需要设置session
+  let needSetCookie = false;
+  if (userId) {
+    if (!SESSION_DATA[userId]) {
+      SESSION_DATA[userId] = {};
+    }
+  } else {
+    needSetCookie = true;
+    userId = `${Date.now()}_${Math.random()}`;
+    SESSION_DATA[userId] = {};
+  }
+  req.session = SESSION_DATA[userId];
   // 处理post data
   getPostData(req).then((postData) => {
     req.body = postData;
@@ -59,6 +82,12 @@ const serverHandle = (req, res) => {
     const blogResult = handleBlogRoute(req, res);
     if (blogResult) {
       blogResult.then((blogData) => {
+        if (needSetCookie) { 
+          res.setHeader(
+            'Set-Cookie',
+            `userid=${userId};path=/;httpOnly;expires=${getCookieExpires()}`
+          );
+        }
         res.end(JSON.stringify(blogData));
       });
       return;
@@ -67,6 +96,12 @@ const serverHandle = (req, res) => {
 
     if (userResult) {
       return userResult.then((userData) => {
+        if (needSetCookie) {
+          res.setHeader(
+            'Set-Cookie',
+            `userid=${userId};path=/;httpOnly;expires=${getCookieExpires()}`
+          );
+        }
         res.end(JSON.stringify(userData));
       });
     }
@@ -80,3 +115,4 @@ module.exports = serverHandle;
 
 // 为何将router和controller分开
 // router 来了什么路由 我们分配什么数据   controller 我只管处理数据 更苦参数返回数据 你数据如何包装 我不关心
+// session  理解

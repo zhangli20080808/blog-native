@@ -1,13 +1,6 @@
 const { login } = require('../controller/user');
 const { SuccessModel, ErrorModel } = require('../model/resModel');
 
-function getCookieExpires () {
-  const d = new Date();
-  d.setTime(d.getTime() + 24 * 60 * 60 * 1000);
-  // cookies 时间格式  Sat, 11 Apr 2020 07:23:13 GMT
-  return d.toGMTString()
-}
-
 const handleUserRoute = (req, res) => {
   const method = req.method;
   // 新建博客
@@ -16,11 +9,9 @@ const handleUserRoute = (req, res) => {
     const result = login(username, password);
     return result.then((loginData) => {
       if (loginData.username) {
-        // 操作cookies
-        res.setHeader(
-          'Set-Cookie',
-          `username=${loginData.username};path=/;httpOnly;expires=${getCookieExpires()}`
-        );
+        // 设置 session
+        req.session.username = loginData.username;
+        req.session.realname = loginData.realname;
         return new SuccessModel();
       } else {
         return new ErrorModel('登录失败');
@@ -28,12 +19,11 @@ const handleUserRoute = (req, res) => {
     });
   }
   //登录验证
-
   if (method === 'GET' && req.path === '/api/user/login-test') {
-    if (req.cookie.username === 'zhangsan') { 
-      return Promise.resolve(new SuccessModel());
+    if (req.session.username === 'zhangsan') {
+      return Promise.resolve(new SuccessModel({ session: req.session }));
     }
-    return Promise.resolve(new ErrorModel('登录失败'));
+    return Promise.resolve(new ErrorModel('尚未登录'));
   }
 };
 module.exports = handleUserRoute;

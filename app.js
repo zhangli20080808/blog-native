@@ -3,6 +3,7 @@ const handleUserRoute = require('./src/route/user');
 
 const queryString = require('querystring');
 
+
 // 用于处理 post data
 const getPostData = (req) => {
   const promise = new Promise((resolve, reject) => {
@@ -36,6 +37,20 @@ const serverHandle = (req, res) => {
   req.path = url.split('?')[0];
   // 解析 query
   req.query = queryString.parse(url.split('?')[1]);
+
+  // 解析 cookie 存储到对象
+  req.cookie = {};
+  const cookieStr = req.headers.cookie || ''; //k1=v1;k2=v2
+  cookieStr.split(';').map((item) => {
+    if (!item) {
+      return;
+    }
+    const arr = item.split('=');
+    const key = arr[0].trim();
+    const val = arr[1].trim();
+    console.log(key, val);
+    req.cookie[key] = val;
+  });
 
   // 处理post data
   getPostData(req).then((postData) => {

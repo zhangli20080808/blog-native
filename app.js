@@ -42,16 +42,18 @@ const serverHandle = (req, res) => {
   getPostData(req).then((postData) => {
     req.body = postData;
     // 处理路由
-    const blogData = handleBlogRoute(req, res);
-    const userData = handleUserRoute(req, res);
-    if (blogData) {
-      res.end(JSON.stringify(blogData));
+    const blogResult = handleBlogRoute(req, res);
+    if (blogResult) {
+      blogResult.then((blogData) => {
+        res.end(JSON.stringify(blogData));
+      });
       return;
     }
-    if (userData) {
-      res.end(JSON.stringify(userData));
-      return;
-    }
+    // const userData = handleUserRoute(req, res);
+    // if (userData) {
+    //   res.end(JSON.stringify(userData));
+    //   return;
+    // }
     // 未命中路由 返回404
     res.writeHead(404, { 'Content-type': 'text/plain' });
     res.write('404 not found');
@@ -59,3 +61,6 @@ const serverHandle = (req, res) => {
   });
 };
 module.exports = serverHandle;
+
+// 为何将router和controller分开
+// router 来了什么路由 我们分配什么数据   controller 我只管处理数据 更苦参数返回数据 你数据如何包装 我不关心

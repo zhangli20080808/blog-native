@@ -72,7 +72,37 @@ b.js-> module.export = {add,mul}  a.js->const {add,mul} = require('./b')
 
 2. javascript 操作 cookie
 3. server 端操作 cookie
- 
- # session 
- cookie 存储是比较危险的，解决方案 cookie存储userid(标识)  server端对应username 
- session 即server端存储用户信息 
+
+# session
+
+cookie 存储是比较危险的，解决方案 cookie 存储 userid(标识) server 端对应 username
+session 即 server 端存储用户信息
+
+# session 的问题
+
+1.  目前 session 直接 js 变量 放在 nodejs 进程没存中
+2.  进程内存有限 访问量过大 内存暴增怎么办 操作系统会给每一个进程分配一个有限的内存块 会限制每个进程的最大内存
+3.  正式上线之后是多进程的 进程之间无法共享
+
+正式上线 我们的 nodejs 程序是分多个进程跑的 你跑一个进程 不是太浪费了嘛  
+能访问哪个进程是随机的
+
+解决方案
+
+# redis
+
+1. web server 最常用的缓存数据库，数据存放在内存中 读写块 昂贵 一关就没了
+2. 相比约 mysql 访问速度快
+3. 但是成本更高，可存储的数据量更小
+
+# 为何 session 适合用 redis
+
+1. session 访问频繁 对性能要求极高 对比 mysql
+2. session 可不考虑断电丢失数据的问题
+3. session 数据量不会很大
+
+# 为何网站数据不适合用 redis
+
+1. 操作频率不是太高
+2. 断电不能丢失，必须保留
+3. 数据量太大，内存成本太高

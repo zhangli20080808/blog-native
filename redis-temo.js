@@ -10,6 +10,7 @@ redisClient.set('test', 'test', redis.print);
 redisClient.get('test', (err, data) => {
   if (err) {
     console.error(err);
+    return
   }
   console.log(data);
   redisClient.quit();

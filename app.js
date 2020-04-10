@@ -2,7 +2,7 @@ const handleBlogRoute = require('./src/route/blog');
 const handleUserRoute = require('./src/route/user');
 
 const queryString = require('querystring');
-
+const { set, get } = require('./src/db/redis');
 
 function getCookieExpires() {
   const d = new Date();
@@ -12,6 +12,7 @@ function getCookieExpires() {
 }
 
 // session 数据
+
 const SESSION_DATA = {};
 
 // 用于处理 post data
@@ -65,24 +66,46 @@ const serverHandle = (req, res) => {
   let userId = req.cookie.userid;
   // 是否需要设置session
   let needSetCookie = false;
+  let saveSession = {};
+
   if (userId) {
-    if (!SESSION_DATA[userId]) {
-      SESSION_DATA[userId] = {};
-    }
+    // if (!SESSION_DATA[userId]) {
+    //   SESSION_DATA[userId] = {};
+    // }
+    get(userId).then((res) => {
+      if (!res) {
+        set(userId, {});
+      }
+    });
   } else {
     needSetCookie = true;
     userId = `${Date.now()}_${Math.random()}`;
-    SESSION_DATA[userId] = {};
+    // SESSION_DATA[userId] = {};
+    set(userId, {});
   }
-  req.session = SESSION_DATA[userId];
+  // req.session = SESSION_DATA[userId];
+  const a = get(userId);
+  a.then((res) => {
+    console.log(res,'res');
+    
+    saveSession = res;
+    req.session = saveSession;
+    console.log(req.session);
+    
+  });
+  console.log('1');
+  req.sessionId = userId;
+
   // 处理post data
   getPostData(req).then((postData) => {
+    console.log('2');
+    
     req.body = postData;
     // 处理路由
     const blogResult = handleBlogRoute(req, res);
     if (blogResult) {
       blogResult.then((blogData) => {
-        if (needSetCookie) { 
+        if (needSetCookie) {
           res.setHeader(
             'Set-Cookie',
             `userid=${userId};path=/;httpOnly;expires=${getCookieExpires()}`

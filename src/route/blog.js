@@ -22,7 +22,7 @@ const handleBlogRoute = (req, res) => {
   if (method === 'GET' && req.path === '/api/blog/list') {
     const { keyword = '', author = '' } = req.query;
     // const listData = getList(author, keyword);
-    // return new SuccessModel(listData);
+    // return new SuccessModel(listData);newBlog
     const result = getList(author, keyword);
     return result.then((res) => {
       return new SuccessModel(res);
@@ -37,14 +37,19 @@ const handleBlogRoute = (req, res) => {
   }
   // 新建博客
   if (method === 'POST' && req.path === '/api/blog/new') {
-    const loginCheckResult = loginCheck(req);
-    if (loginCheckResult) {
-      // 未登录
-      return loginCheckResult;
-    }
+    // const loginCheckResult = loginCheck(req);
+    // if (loginCheckResult) {
+    //   // 未登录
+    //   return loginCheckResult;
+    // }
     req.body.author = req.session.username;
     const data = newBlog(req.body);
-    return new SuccessModel(data);
+    return data.then((res) => {
+      if (res) {
+        return new SuccessModel('创建成功');
+      }
+      return new ErrorModel('创建失败');
+    });
   }
   // 更新博客
   if (method === 'POST' && req.path === '/api/blog/update') {

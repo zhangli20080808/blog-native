@@ -16,11 +16,15 @@ const getList = (author, keyword) => {
 
 const newBlog = (blogData = {}) => {
   console.log(blogData);
-
+  const { title, content, createtime, author } = blogData;
   // blogData 是一个博客对象
-  return {
-    id: 3, // 新建博客，插入到数据表中的id
-  };
+  let sql = `insert into blogs (title,content,createtime,author) VALUES ('${title}','${content}','${createtime}','${author}')`;
+  return exec(sql).then((res) => {
+    if (res.affectedRows > 0) {
+      return true;
+    }
+    return false;
+  });
 };
 
 const getDetail = (id) => {
@@ -47,7 +51,7 @@ const deleteBlog = (id, author) => {
   let sql = `delete from blogs where id='${id}' and author='${author}'`;
   return exec(sql).then((deleteData) => {
     console.log(deleteData);
-    
+
     if (deleteData.affectedRows > 0) {
       return true;
     }

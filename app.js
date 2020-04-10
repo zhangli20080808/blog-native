@@ -85,53 +85,46 @@ const serverHandle = (req, res) => {
   }
   // req.session = SESSION_DATA[userId];
   const a = get(userId);
-  a.then((res) => {
-    console.log(res,'res');
-    
-    saveSession = res;
-    req.session = saveSession;
-    console.log(req.session);
-    
-  });
-  console.log('1');
   req.sessionId = userId;
+  a.then((sessionData) => {
+    return sessionData;
+  }).then((datas) => {
+    // 处理post data
+    getPostData(req).then((postData) => {
+      req.body = postData;
+      req.session = datas;
+      // 处理路由
+      const blogResult = handleBlogRoute(req, res);
+      if (blogResult) {
+        blogResult.then((blogData) => {
+          if (needSetCookie) {
+            res.setHeader(
+              'Set-Cookie',
+              `userid=${userId};path=/;httpOnly;expires=${getCookieExpires()}`
+            );
+          }
+          res.end(JSON.stringify(blogData));
+        });
+        return;
+      }
+      const userResult = handleUserRoute(req, res);
 
-  // 处理post data
-  getPostData(req).then((postData) => {
-    console.log('2');
-    
-    req.body = postData;
-    // 处理路由
-    const blogResult = handleBlogRoute(req, res);
-    if (blogResult) {
-      blogResult.then((blogData) => {
-        if (needSetCookie) {
-          res.setHeader(
-            'Set-Cookie',
-            `userid=${userId};path=/;httpOnly;expires=${getCookieExpires()}`
-          );
-        }
-        res.end(JSON.stringify(blogData));
-      });
-      return;
-    }
-    const userResult = handleUserRoute(req, res);
-
-    if (userResult) {
-      return userResult.then((userData) => {
-        if (needSetCookie) {
-          res.setHeader(
-            'Set-Cookie',
-            `userid=${userId};path=/;httpOnly;expires=${getCookieExpires()}`
-          );
-        }
-        res.end(JSON.stringify(userData));
-      });
-    }
-    // 未命中路由 返回404
-    res.writeHead(404, { 'Content-type': 'text/plain' });
-    res.write('404 not found');
-    res.end();
+      if (userResult) {
+        return userResult.then((userData) => {
+          if (needSetCookie) {
+            res.setHeader(
+              'Set-Cookie',
+              `userid=${userId};path=/;httpOnly;expires=${getCookieExpires()}`
+            );
+          }
+          res.end(JSON.stringify(userData));
+        });
+      }
+      // 未命中路由 返回404
+      res.writeHead(404, { 'Content-type': 'text/plain' });
+      res.write('404 not found');
+      res.end();
+    });
   });
 };
 module.exports = serverHandle;

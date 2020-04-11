@@ -7,7 +7,7 @@ function writeLog(writeStream, log) {
   writeStream.write(log + '\n'); //关键
 }
 function createWriteStream(fileName) {
-  const fullName = path.resolve(__dirname, '../', '../logs', fileName);
+  const fullName = path.resolve(__dirname, '../', '../', 'logs', fileName);
   const writeStream = fs.createWriteStream(fullName, {
     flags: 'a',
   });

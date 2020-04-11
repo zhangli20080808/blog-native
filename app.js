@@ -3,6 +3,7 @@ const handleUserRoute = require('./src/route/user');
 
 const queryString = require('querystring');
 const { set, get } = require('./src/db/redis');
+const { access } = require('./src/utils/log');
 
 function getCookieExpires() {
   const d = new Date();
@@ -42,6 +43,8 @@ const getPostData = (req) => {
 };
 
 const serverHandle = (req, res) => {
+  // 记录日志 access log
+  access(`${req.method} -- ${req.headers['user-agent']}--${Date.now()}`);
   res.setHeader('Content-type', 'application/json');
   // 获取path
   const url = req.url;
@@ -80,7 +83,7 @@ const serverHandle = (req, res) => {
 
   // 解析session 使用redis
   let needSetCookie = false;
-  const userId = req.cookie.userId;
+  let userId = req.cookie.userId;
   if (!userId) {
     needSetCookie = true;
     userId = `${Date.now()}_${Math.random()}`;

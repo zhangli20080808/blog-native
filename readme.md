@@ -110,6 +110,12 @@ session 即 server 端存储用户信息
 # 日志
 
 1. nodejs 文件操作 nodejs stream 为了节省 cup 和内存 我们要用 stream 的方式去做 性能提升
-   日志存储到文件中 为什么不存在mysql中(如何没有那种复杂的查表，没必要放到mysql中)为什么不存在redis中？(内存数据库)
+   日志存储到文件中 为什么不存在 mysql 中(如何没有那种复杂的查表，没必要放到 mysql 中)为什么不存在 redis 中？(内存数据库)
 2. 日志功能开发使用
-3. 日志拆分 内容分析
+3. 日志拆分 内容分析 我们拆完之后也可以吧日志扔到其他的服务器去呀
+   - 实现方式 linxu 的 crontab 命令 即定时任务
+   - 分钟 小时 日期 月份 星期 command
+   - 将 access.log 拷贝并重命名为 2019-02-10.access.log
+   - 清空 access.log 文件 重新积累日志
+   - crontab -e
+   - 使用 nodejs 的 readline 基于 stream 效率高

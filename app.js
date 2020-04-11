@@ -12,8 +12,7 @@ function getCookieExpires() {
 }
 
 // session 数据
-
-const SESSION_DATA = {};
+// const SESSION_DATA = {};
 
 // 用于处理 post data
 const getPostData = (req) => {
@@ -27,6 +26,7 @@ const getPostData = (req) => {
       return;
     }
     let postData = '';
+    // 网络 stream的提现 我们post的请求
     req.on('data', (chunk) => {
       postData += chunk.toString();
     });
@@ -63,36 +63,49 @@ const serverHandle = (req, res) => {
   });
 
   // 解析 session
-  let userId = req.cookie.userid;
+  // let userId = req.cookie.userid;
   // 是否需要设置session
-  let needSetCookie = false;
-  let saveSession = {};
+  // let needSetCookie = false;
+  // let saveSession = {};
+  // if (userId) {
+  //   if (!SESSION_DATA[userId]) {
+  //     SESSION_DATA[userId] = {};
+  //   }
+  // } else {
+  //   needSetCookie = true;
+  //   userId = `${Date.now()}_${Math.random()}`;
+  //   SESSION_DATA[userId] = {};
+  // }
+  // req.session = SESSION_DATA[userId];
 
-  if (userId) {
-    // if (!SESSION_DATA[userId]) {
-    //   SESSION_DATA[userId] = {};
-    // }
-    get(userId).then((res) => {
-      if (!res) {
-        set(userId, {});
-      }
-    });
-  } else {
+  // 解析session 使用redis
+  let needSetCookie = false;
+  const userId = req.cookie.userId;
+  if (!userId) {
     needSetCookie = true;
     userId = `${Date.now()}_${Math.random()}`;
-    // SESSION_DATA[userId] = {};
+    // 初始化redis中的值
     set(userId, {});
   }
-  // req.session = SESSION_DATA[userId];
-  const a = get(userId);
+  // 获取session
   req.sessionId = userId;
-  a.then((sessionData) => {
-    return sessionData;
-  }).then((datas) => {
-    // 处理post data
-    getPostData(req).then((postData) => {
-      req.body = postData;
-      req.session = datas;
+  get(req.sessionId)
+    .then((sessionData) => {
+      if (sessionData == null) {
+        // 初始化redis中的session
+        set(req.session, {});
+        // 设置session
+        req.session = {};
+      } else {
+        // 设置session
+        req.session = sessionData;
+      }
+      // 处理post data
+      return getPostData(req);
+    })
+    .then((datas) => {
+      // 处理post data
+      req.body = datas;
       // 处理路由
       const blogResult = handleBlogRoute(req, res);
       if (blogResult) {
@@ -125,7 +138,6 @@ const serverHandle = (req, res) => {
       res.write('404 not found');
       res.end();
     });
-  });
 };
 module.exports = serverHandle;
 

@@ -119,3 +119,10 @@ session 即 server 端存储用户信息
    - 清空 access.log 文件 重新积累日志
    - crontab -e
    - 使用 nodejs 的 readline 基于 stream 效率高
+
+# 安全
+
+1. sql 注入 窃取数据库内容
+   攻击方式 输入一个 sql 片段 ，最终拼接成一段攻击代码 预防 使用 mysql 的 escape 函数处理输入内容
+2. xss 攻击 窃取前端的 cookie 内容
+3. 密码加密
